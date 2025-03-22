@@ -17,17 +17,34 @@ export default function Page() {
       setNumber(Math.floor(Math.random() * Math.pow(10, level + 2)));
       alert("correct");
     } else {
-      alert("incorrect");
       setStarted(false);
       setLevel(0);
-      setPhase("memorize");
+      setPhase("result");
     }
   }
-
-  return (
-    <div className="flex items-center justify-center h-screen">
-      {!started ? (
-        <div>
+  if (!started) {
+    if (phase === "result") {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div>Game Over!</div>
+          <div>Level you reached: {level}</div>
+          <div>Correct answer was: {number}</div>
+          <div>Your answer was: {guessedNumber}</div>
+          <button
+            onClick={() => {
+              setStarted(true);
+              setNumber(Math.floor(Math.random() * 10));
+              setPhase("memorize");
+              setLevel(0);
+            }}
+          >
+            Restart
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center justify-center h-screen">
           <button
             onClick={() => {
               setStarted(true);
@@ -37,24 +54,47 @@ export default function Page() {
             Start
           </button>
         </div>
-      ) : phase === "memorize" ? (
-        <div className="flex flex-col items-center justify-center">
-          <div>memorize this number {number}</div>
-          <button onClick={() => setPhase("guess")}>Done</button>
-        </div>
-      ) : (
-        <div>
-          <input
-            value={guessedNumber}
-            onChange={(event) => {
-              setGuessedNumber(event.target.value);
-            }}
-            type="text"
-            className="border border-black"
-          />
-          <button onClick={handleSubmit}>Submit</button>
-        </div>
-      )}
-    </div>
-  );
+      );
+    }
+  } else if (phase === "memorize") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div>memorize this number {number}</div>
+        <button onClick={() => setPhase("guess")}>Done</button>
+      </div>
+    );
+  } else if (phase === "guess") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <input
+          value={guessedNumber}
+          onChange={(event) => {
+            setGuessedNumber(event.target.value);
+          }}
+          type="text"
+          className="border border-black"
+        />
+        <button onClick={handleSubmit}>Submit</button>
+      </div>
+    );
+  } else {
+    return (
+      <div className="items-center justify-center h-screen">
+        <div>Game Over!</div>
+        <div>Level you reached: {level}</div>
+        <div>Correct answer was: {number}</div>
+        <div>Your answer was: {guessedNumber}</div>
+        <button
+          onClick={() => {
+            setStarted(true);
+            setNumber(Math.floor(Math.random() * 10));
+            setPhase("memorize");
+            setLevel(0);
+          }}
+        >
+          Restart
+        </button>
+      </div>
+    );
+  }
 }
