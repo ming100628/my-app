@@ -32,7 +32,7 @@ export default function Page() {
           <div>Your answer was: {guessedNumber}</div>
           <button
             onClick={() => {
-              setStarted(true);
+              setStarted(false);
               setNumber(Math.floor(Math.random() * 10));
               setPhase("memorize");
               setLevel(0);
