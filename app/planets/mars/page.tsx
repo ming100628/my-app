@@ -15,10 +15,8 @@ export default function Page() {
       setLevel(level + 1);
       setPhase("memorize");
       setNumber(Math.floor(Math.random() * Math.pow(10, level + 2)));
-      alert("correct");
     } else {
       setStarted(false);
-      setLevel(0);
       setPhase("result");
     }
   }
