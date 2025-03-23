@@ -4,10 +4,9 @@ import { useState } from "react";
 export default function Page() {
   const [number, setNumber] = useState<number>(0);
   const [level, setLevel] = useState<number>(0);
-  const [phase, setPhase] = useState<"memorize" | "guess" | "result">(
-    "memorize"
+  const [phase, setPhase] = useState<"memorize" | "guess" | "result" | "start">(
+    "start"
   );
-  const [started, setStarted] = useState<boolean>(false);
   const [guessedNumber, setGuessedNumber] = useState<string>("");
 
   function handleSubmit() {
@@ -16,52 +15,53 @@ export default function Page() {
       setPhase("memorize");
       setNumber(Math.floor(Math.random() * Math.pow(10, level + 2)));
     } else {
-      setStarted(false);
       setPhase("result");
     }
   }
-  if (!started) {
-    if (phase === "result") {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <div>Game Over!</div>
-          <div>Level you reached: {level}</div>
-          <div>Correct answer was: {number}</div>
-          <div>Your answer was: {guessedNumber}</div>
-          <button
-            onClick={() => {
-              setStarted(false);
-              setNumber(Math.floor(Math.random() * 10));
-              setPhase("memorize");
-              setLevel(0);
-            }}
-          >
-            Restart
-          </button>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <button
-            onClick={() => {
-              setStarted(true);
-              setNumber(Math.floor(Math.random() * 10));
-            }}
-          >
-            Start
-          </button>
-        </div>
-      );
-    }
-  } else if (phase === "memorize") {
+  function renderResults() {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div>Game Over!</div>
+        <div>Level you reached: {level}</div>
+        <div>Correct answer was: {number}</div>
+        <div>Your answer was: {guessedNumber}</div>
+        <button
+          onClick={() => {
+            setNumber(Math.floor(Math.random() * 10));
+            setPhase("start");
+            setLevel(0);
+          }}
+        >
+          Restart
+        </button>
+      </div>
+    );
+  }
+  function renderStartPage() {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <button
+          onClick={() => {
+            setPhase("memorize");
+            setNumber(Math.floor(Math.random() * 10));
+          }}
+        >
+          Start
+        </button>
+      </div>
+    );
+  }
+
+  function renderMemorizePage() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div>memorize this number {number}</div>
         <button onClick={() => setPhase("guess")}>Done</button>
       </div>
     );
-  } else if (phase === "guess") {
+  }
+
+  function renderGuess() {
     return (
       <div className="flex items-center justify-center h-screen">
         <input
@@ -75,24 +75,18 @@ export default function Page() {
         <button onClick={handleSubmit}>Submit</button>
       </div>
     );
-  } else {
-    return (
-      <div className="items-center justify-center h-screen">
-        <div>Game Over!</div>
-        <div>Level you reached: {level}</div>
-        <div>Correct answer was: {number}</div>
-        <div>Your answer was: {guessedNumber}</div>
-        <button
-          onClick={() => {
-            setStarted(true);
-            setNumber(Math.floor(Math.random() * 10));
-            setPhase("memorize");
-            setLevel(0);
-          }}
-        >
-          Restart
-        </button>
-      </div>
-    );
   }
+
+  function renderPhase() {
+    if (phase === "start") {
+      return renderStartPage();
+    } else if (phase === "result") {
+      return renderResults();
+    } else if (phase === "memorize") {
+      return renderMemorizePage();
+    } else {
+      return renderGuess();
+    }
+  }
+  return renderPhase();
 }
