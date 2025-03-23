@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Page() {
   const [number, setNumber] = useState<number>(0);
@@ -8,7 +8,20 @@ export default function Page() {
     "start"
   );
   const [guessedNumber, setGuessedNumber] = useState<string>("");
-
+  const [percent, setPercent] = useState<number>(100);
+  console.log("i have rerendered");
+  useEffect(() => {
+    if (percent <= 0 && phase == "memorize") {
+      setPhase("guess");
+      setPercent(100);
+    }
+    const a = setInterval(() => {
+      setPercent(percent - 1);
+    }, 100);
+    return () => {
+      clearInterval(a);
+    };
+  });
   function handleSubmit() {
     if (guessedNumber === number.toString()) {
       setLevel(level + 1);
@@ -30,6 +43,7 @@ export default function Page() {
             setNumber(Math.floor(Math.random() * 10));
             setPhase("start");
             setLevel(0);
+            setPercent(100);
           }}
         >
           Restart
@@ -55,8 +69,13 @@ export default function Page() {
   function renderMemorizePage() {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div>memorize this number {number}</div>
-        <button onClick={() => setPhase("guess")}>Done</button>
+        <div>
+          <div
+            className="bg-green-300 h-8 w-full"
+            style={{ width: `${percent}%` }}
+          ></div>
+          <div>memorize this number {number}</div>
+        </div>
       </div>
     );
   }
