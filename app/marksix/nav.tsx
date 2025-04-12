@@ -9,7 +9,7 @@ export default () => {
     { name: "About HKJC", path: "/" },
   ];
   return (
-    <div>
+    <div className="flex items-center h-10 w-screen bg-red-800 text-white">
       {links.map((link) => (
         <a key={link.name} className="px-3 py-3" href={link.path}>
           {link.name}
