@@ -11,20 +11,33 @@ export default () => {
   const [saved, setSaved] = useState<number[][]>([]);
 
   function renderColor(index: number, type: string) {
-    var color = type;
-    if (index % 6 === 0) color += "-red-";
-    else if (index % 6 === 1) color += "-blue-";
-    else if (index % 6 === 2) color += "-pink-";
-    else if (index % 6 === 3) color += "-yellow-";
-    else if (index % 6 === 4) color += "-green-";
-    else if (index % 6 === 5) color += "-orange-";
+    const bgcolors = [
+      "bg-red-500",
+      "bg-blue-500",
+      "bg-pink-500",
+      "bg-yellow-500",
+      "bg-green-500",
+      "bg-orange-500",
+      "bg-gray-500",
+      "bg-purple-500",
+    ];
+    const bordercolors = [
+      "border-red-500",
+      "border-blue-500",
+      "border-pink-500",
+      "border-yellow-500",
+      "border-green-500",
+      "border-orange-500",
+      "border-gray-500",
+      "border-purple-500",
+    ];
     if (type === "border") {
-      color += "500";
+      return bordercolors[index % 8];
     } else {
-      if (!selected[index]) color += "0";
-      else color += "500";
+      if (selected[index]) {
+        return bgcolors[index % 8];
+      } else return "";
     }
-    return color;
   }
 
   function saveConfig(numbers: number[]) {
@@ -35,43 +48,47 @@ export default () => {
 
   return (
     <>
+      <div className="border-red-500 border-blue-500 border-pink-500 border-yellow-500 border-orange-500 border-green-500 bg-red-500 bg-blue-500 bg-pink-500 bg-yellow-500 bg-orange-500 bg-green-500"></div>
       <div className="px-50 py-8 flex h-full w-full justify-center bg-green-200 items-center">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <div className="block items-center justify-center">
-            {Array.from({ length: 7 }).map((_, j) => (
-              <button
-                className={`rounded-full ${renderColor(
-                  i * 7 + j + 1,
-                  "border"
-                )} border-5 
+        <div className="flex flex-col items-center justify-center">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div className="flex" key={i}>
+              {Array.from({ length: 7 }).map((_, j) => (
+                <button
+                  key={`${i}-${j}`}
+                  className={`rounded-full ${renderColor(
+                    i * 7 + j + 1,
+                    "border"
+                  )} border-5 
                   
                   ${renderColor(
                     i * 7 + j + 1,
                     "bg"
-                  )} w-10 h-10 flex items-center justify-center text-justify text-center font-bold`}
-                onClick={() => {
-                  const temp3 = [...selected];
-                  var newSelectedCount = selectedcount;
-                  if (temp3[i * 7 + j + 1]) {
-                    newSelectedCount = selectedcount - 1;
-                  } else {
-                    newSelectedCount = selectedcount + 1;
-                  }
-                  if (newSelectedCount > 6) {
-                    alert("You can only select 6 numbers.");
-                    return;
-                  } else {
-                    temp3[i * 7 + j + 1] = !temp3[i * 7 + j + 1];
-                  }
-                  setSelectedCount(newSelectedCount);
-                  setSelected(temp3);
-                }}
-              >
-                {i * 7 + j + 1} &nbsp;
-              </button>
-            ))}
-          </div>
-        ))}
+                  )} w-10 h-10 flex items-center justify-center font-bold`}
+                  onClick={() => {
+                    const temp3 = [...selected];
+                    var newSelectedCount = selectedcount;
+                    if (temp3[i * 7 + j + 1]) {
+                      newSelectedCount = selectedcount - 1;
+                    } else {
+                      newSelectedCount = selectedcount + 1;
+                    }
+                    if (newSelectedCount > 6) {
+                      alert("You can only select 6 numbers.");
+                      return;
+                    } else {
+                      temp3[i * 7 + j + 1] = !temp3[i * 7 + j + 1];
+                    }
+                    setSelectedCount(newSelectedCount);
+                    setSelected(temp3);
+                  }}
+                >
+                  {i * 7 + j + 1}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
         <button
           className="rounded-md h-15 w-35 border-2 hover:bg-red-500 border-red-700"
           onClick={() => {
@@ -107,14 +124,12 @@ export default () => {
           </div>
           {saved.map((element, index) => {
             return (
-              <>
-                <div
-                  key={index}
-                  className="flex items-center justify-center text-2xl font-bold"
-                >
+              <div key={index}>
+                <div className="flex items-center justify-center text-2xl font-bold">
                   {element.join(", ")}
                 </div>
                 <button
+                  key={index}
                   className="flex items-center justify-center text-2xl font-bold border-2 hover:bg-red-500 border-red-700"
                   onClick={() => {
                     var temp6 = [...saved];
@@ -124,7 +139,7 @@ export default () => {
                 >
                   Delete
                 </button>
-              </>
+              </div>
             );
           })}
         </div>

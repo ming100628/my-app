@@ -18,8 +18,9 @@ export default () => {
   return (
     <div className="h-full w-80 bg-green-500">
       <div className="h-1/6 w-full bg-gray-400 flex items-center justify-center text-xs font-bold">
-        {tabs.map((element) => (
+        {tabs.map((element, index) => (
           <button
+            key={index}
             className={`h-full w-1/3 ${renderColor(
               element
             )} flex items-center justify-center`}
