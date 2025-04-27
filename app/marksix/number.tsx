@@ -78,7 +78,9 @@ export default () => {
             "text",
             pos
           )} w-16 h-16 flex items-center justify-center font-bold text-2xl`}
-          onClick={() => selected.splice(pos2, 1)}
+          onClick={() => {
+            setSelected(selected.filter((_, i) => i !== pos2));
+          }}
         >
           {index}
         </button>
@@ -151,7 +153,7 @@ export default () => {
               </div>
               <button
                 className="h-full w-[20%]"
-                onClick={() => saved.splice(index, 1)}
+                onClick={() => setSaved(saved.filter((_, i) => i !== index))}
               >
                 Delete
               </button>
