@@ -1,95 +1,136 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BGCOLORS, BORDERCOLORS } from "../utils/constants";
 
 export default () => {
-  const [balls, setBalls] = useState<number[][]>([[]]);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [balls, setBalls] = useState<number[][]>([]);
+  const [firstLoad, setFirstLoad] = useState<Boolean>(true);
 
-  function searchEmptyArray() {
-    if (balls.find((arr) => arr.length === 0)) {
-      return true;
+  function getLocalStorage(): number[][] {
+    return JSON.parse(localStorage.getItem("balls") || "");
+  }
+
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  useEffect(() => {
+    if (firstLoad) {
+      setFirstLoad(false);
+      setBalls(getLocalStorage());
     } else {
-      return false; // Return -1 if no empty array is found
+      localStorage.setItem("balls", JSON.stringify(balls));
+    }
+  }, [firstLoad, balls]);
+
+  function selectBallIndex() {
+    const index = balls.findIndex((group) => group.length < 6);
+    return index === -1 ? balls.length : index;
+  }
+
+  function addOrRemoveBall(rowIndex: number, ballNumber: number) {
+    const currentSelection = balls[rowIndex] || [];
+
+    if (currentSelection.includes(ballNumber)) {
+      removeBall(rowIndex, ballNumber);
+    } else {
+      const index =
+        currentSelection.length < 6 ? selectedIndex : selectBallIndex();
+      setSelectedIndex(index);
+      addBall(index, ballNumber);
     }
   }
 
-  function handleBallClick(index: number) {
-    const temp2 = [...balls];
+  function addBall(rowIndex: number, ballNumber: number) {
+    const updatedBalls = [...balls];
+    updatedBalls[rowIndex] = updatedBalls[rowIndex] || [];
+    const currentSelection = updatedBalls[rowIndex];
 
-    if (temp2[selectedIndex].includes(index)) {
-      temp2[selectedIndex].splice(temp2[selectedIndex].indexOf(index), 1);
-    } else if (temp2[selectedIndex].length < 6) {
-      temp2[selectedIndex].push(index);
+    if (!currentSelection.includes(ballNumber)) {
+      currentSelection.push(ballNumber);
+      currentSelection.sort((a, b) => a - b);
+      updatedBalls[rowIndex] = currentSelection;
+      setBalls(updatedBalls);
     }
-    temp2[selectedIndex].sort((a, b) => a - b);
-    setBalls(temp2);
-    if (balls[selectedIndex].length >= 6) {
-      const temp3 = [...balls];
+  }
 
-      if (!searchEmptyArray()) temp3.push([]);
-      setSelectedIndex(temp3.length - 1);
-      setBalls(temp3);
-    }
+  function removeBall(rowIndex: number, ballNumber: number) {
+    const newBalls = [...balls];
+    newBalls[rowIndex] = newBalls[rowIndex].filter(
+      (number) => number !== ballNumber
+    );
+    setBalls(newBalls.filter((group) => group.length !== 0));
   }
 
   function renderColor(index: number, type: string) {
     if (type === "text") {
       return "text-white";
-    }
-
-    if (type === "border") {
+    } else if (type === "border") {
       return BORDERCOLORS[index % 8];
+    } else if (type === "bg") {
+      return BGCOLORS[index % 8];
     }
-
-    return BGCOLORS[index % 8];
   }
 
-  function renderBall(index: number, left: boolean) {
+  function renderBall(rowIndex: number, ballNumber: number, left: boolean) {
+    const currentBalls = balls[selectedIndex];
+    const selected =
+      currentBalls && currentBalls.find((number) => number === ballNumber);
+
+    const text =
+      ((left && selected) || !left) && renderColor(ballNumber, "text");
+    const background =
+      ((left && selected) || !left) && renderColor(ballNumber, "bg");
+    const border = renderColor(ballNumber, "border");
+
     return (
       <button
-        key={index}
-        className={`rounded-full ${
-          !left && renderColor(index, "border")
-        } border-4 ${!left && renderColor(index, "bg")} ${
-          !left && renderColor(index, "text")
-        } w-16 h-16 flex items-center justify-center font-bold text-2xl`}
-        onClick={left ? () => {} : () => handleBallClick(index)}
+        key={`${rowIndex}-${ballNumber}`}
+        className={`cursor-pointer rounded-full border-4 ${text} ${background} ${border} w-16 h-16 flex items-center justify-center font-bold text-2xl`}
+        onClick={
+          left
+            ? () => addOrRemoveBall(selectedIndex, ballNumber)
+            : () => removeBall(rowIndex, ballNumber)
+        }
       >
-        {index}
+        {ballNumber}
       </button>
     );
   }
 
   return (
     <div className="flex h-full w-full bg-grey-100">
-      <div className="w-[35%] h-full bg-red-300 border-8 rounded-md border-gray-500 flex-col-2 items-center justify-center ">
+      <div className="p-8 h-full bg-red-300 border-8 rounded-md border-gray-500 flex-col-2 items-center justify-center ">
         <div className="w-full h-full items-center justify-center flex flex-col">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div className="flex space-x-3 space-y-3" key={i}>
-              {Array.from({ length: 7 }).map((_, j) =>
-                renderBall(i * 7 + j + 1, false)
+          {Array.from({ length: 7 }).map((_, rowIndex) => (
+            <div className="flex space-x-3 space-y-3" key={rowIndex}>
+              {Array.from({ length: 7 }).map((_, colIndex) =>
+                renderBall(rowIndex, rowIndex * 7 + colIndex + 1, true)
               )}
             </div>
           ))}
         </div>
       </div>
-      <div className="w-[65%] h-full bg-blue-300 border-8 rounded-md border-purple-500 flex-col-2 items-center justify-center">
-        <div className="w-[100%] h-[10%] bg-gray-400 flex items-center justify-center text-xl font-bold">
+      <div className="flex-grow h-full bg-blue-300 border-8 rounded-md border-purple-500 flex-col-2 items-center justify-center">
+        <div className="h-16 bg-gray-400 flex items-center justify-center text-xl font-bold">
           balls Selections
         </div>
-        <div className="w-full h-[90%] items-center justify-center text-2xl font-bold ">
-          {balls.map((selection, index) => (
+        <div className="font-bold">
+          {balls.map((selection, rowIndex) => (
             <div
-              key={index}
-              className={`flex space-x-4 items-center justify-center rounded-md border-8`}
+              key={rowIndex}
+              className={`flex space-x-4 items-center justify-between rounded-md bg-amber-100 h-24 m-2 ${
+                selectedIndex === rowIndex && "bg-amber-200"
+              }`}
+              onClick={() => setSelectedIndex(rowIndex)}
             >
-              <div className="h-full w-[80%] space-x-4 flex items-center justify-center text-2xl font-bold">
-                {selection.map((number) => renderBall(number, false))}
+              <div className="h-full space-x-4 flex items-center font-bold pl-8">
+                {selection.map((number) => renderBall(rowIndex, number, false))}
               </div>
               <button
-                className="h-full w-[20%]"
-                onClick={() => setBalls(balls.filter((_, i) => i !== index))}
+                className="cursor-pointer p-2 m-8 rounded-md bg-red-500 text-white"
+                onClick={() => {
+                  const newBalls = [...balls].filter((_, i) => i !== rowIndex);
+                  setSelectedIndex(0);
+                  setBalls(newBalls);
+                }}
               >
                 Delete
               </button>
