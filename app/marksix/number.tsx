@@ -1,165 +1,141 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BGCOLORS, BORDERCOLORS } from "../utils/constants";
 
 export default () => {
-  const [selected, setSelected] = useState<number[]>([]);
-  const [saved, setSaved] = useState<number[][]>([]);
+  const [balls, setBalls] = useState<number[][]>([]);
+  const [firstLoad, setFirstLoad] = useState<Boolean>(true);
 
-  function handleBallClick(index: number, pos: boolean) {
-    if (pos) return;
-    const temp2 = [...selected];
+  function getLocalStorage(): number[][] {
+    return JSON.parse(localStorage.getItem("balls") || "");
+  }
 
-    if (temp2.includes(index)) {
-      temp2.splice(temp2.indexOf(index), 1);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  useEffect(() => {
+    if (firstLoad) {
+      setFirstLoad(false);
+      setBalls(getLocalStorage());
     } else {
-      temp2.push(index);
+      localStorage.setItem("balls", JSON.stringify(balls));
     }
-    temp2.sort((a, b) => a - b);
-    setSelected(temp2);
-    if (temp2.length >= 6) {
-      const temp3 = [...saved];
+  }, [firstLoad, balls]);
 
-      temp3.push(temp2);
-      setSaved(temp3);
-      setSelected([]);
+  function selectBallIndex() {
+    const index = balls.findIndex((group) => group.length < 6);
+    return index === -1 ? balls.length : index;
+  }
+
+  function addOrRemoveBall(rowIndex: number, ballNumber: number) {
+    const currentSelection = balls[rowIndex] || [];
+
+    if (currentSelection.includes(ballNumber)) {
+      removeBall(rowIndex, ballNumber);
+    } else {
+      const index =
+        currentSelection.length < 6 ? selectedIndex : selectBallIndex();
+      setSelectedIndex(index);
+      addBall(index, ballNumber);
     }
   }
 
-  function renderColor(index: number, type: string, position: boolean) {
-    const bgcolors = [
-      "bg-red-500",
-      "bg-blue-500",
-      "bg-pink-500",
-      "bg-yellow-900",
-      "bg-green-500",
-      "bg-orange-500",
-      "bg-gray-500",
-      "bg-purple-500",
-    ];
-    const bordercolors = [
-      "border-red-500",
-      "border-blue-500",
-      "border-pink-500",
-      "border-yellow-900",
-      "border-green-500",
-      "border-orange-500",
-      "border-gray-500",
-      "border-purple-500",
-    ];
-    if (position) {
-      if (type == "text") return "text-black";
-      if (type == "border") return bordercolors[index % 8];
-      if (type == "bg") return "bg-white";
-    }
+  function addBall(rowIndex: number, ballNumber: number) {
+    const updatedBalls = [...balls];
+    updatedBalls[rowIndex] = updatedBalls[rowIndex] || [];
+    const currentSelection = updatedBalls[rowIndex];
 
+    if (!currentSelection.includes(ballNumber)) {
+      currentSelection.push(ballNumber);
+      currentSelection.sort((a, b) => a - b);
+      updatedBalls[rowIndex] = currentSelection;
+      setBalls(updatedBalls);
+    }
+  }
+
+  function removeBall(rowIndex: number, ballNumber: number) {
+    const newBalls = [...balls];
+    newBalls[rowIndex] = newBalls[rowIndex].filter(
+      (number) => number !== ballNumber
+    );
+    setBalls(newBalls.filter((group) => group.length !== 0));
+  }
+
+  function renderColor(index: number, type: string) {
     if (type === "text") {
-      if (selected.includes(index)) return "text-white";
-      return "text-black";
-    }
-    if (type === "border") {
-      return bordercolors[index % 8];
-    } else {
-      if (selected.includes(index)) return bgcolors[index % 8];
-      return "bg-white";
+      return "text-white";
+    } else if (type === "border") {
+      return BORDERCOLORS[index % 8];
+    } else if (type === "bg") {
+      return BGCOLORS[index % 8];
     }
   }
 
-  function renderBall(index: number, pos: boolean, pos2: number = -1) {
-    if (pos2 !== -1) {
-      return (
-        <button
-          key={index}
-          className={`rounded-full ${renderColor(
-            index,
-            "border",
-            pos
-          )} border-4 ${renderColor(index, "bg", pos)} ${renderColor(
-            index,
-            "text",
-            pos
-          )} w-16 h-16 flex items-center justify-center font-bold text-2xl`}
-          onClick={() => {
-            setSelected(selected.filter((_, i) => i !== pos2));
-          }}
-        >
-          {index}
-        </button>
-      );
-    }
+  function renderBall(rowIndex: number, ballNumber: number, left: boolean) {
+    const currentBalls = balls[selectedIndex];
+    const selected =
+      currentBalls && currentBalls.find((number) => number === ballNumber);
+
+    const text =
+      ((left && selected) || !left) && renderColor(ballNumber, "text");
+    const background =
+      ((left && selected) || !left) && renderColor(ballNumber, "bg");
+    const border = renderColor(ballNumber, "border");
+
     return (
       <button
-        key={index}
-        className={`rounded-full ${renderColor(
-          index,
-          "border",
-          pos
-        )} border-4 ${renderColor(index, "bg", pos)} ${renderColor(
-          index,
-          "text",
-          pos
-        )} w-16 h-16 flex items-center justify-center font-bold text-2xl`}
-        onClick={() => handleBallClick(index, pos)}
+        key={`${rowIndex}-${ballNumber}`}
+        className={`cursor-pointer rounded-full border-4 ${text} ${background} ${border} w-16 h-16 flex items-center justify-center font-bold text-2xl`}
+        onClick={
+          left
+            ? () => addOrRemoveBall(selectedIndex, ballNumber)
+            : () => removeBall(rowIndex, ballNumber)
+        }
       >
-        {index}
+        {ballNumber}
       </button>
     );
   }
 
-  function renderSelected() {
-    if (selected.length > 0) {
-      return (
-        <div
-          key={saved.length}
-          className={`flex space-x-4 items-center justify-center rounded-md border-8 ${renderColor(
-            saved.length,
-            "border",
-            false
-          )}`}
-        >
-          {selected.map((number, index) => renderBall(number, true, index))}
-        </div>
-      );
-    } else return <div></div>;
-  }
   return (
     <div className="flex h-full w-full bg-grey-100">
-      <div className="w-[35%] h-full bg-red-300 border-8 rounded-md border-gray-500 flex-col-2 items-center justify-center ">
+      <div className="p-8 h-full bg-red-300 border-8 rounded-md border-gray-500 flex-col-2 items-center justify-center ">
         <div className="w-full h-full items-center justify-center flex flex-col">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div className="flex space-x-3 space-y-3" key={i}>
-              {Array.from({ length: 7 }).map(
-                (_, j) => renderBall(i * 7 + j + 1, false) // Adjust the index to start from 1
+          {Array.from({ length: 7 }).map((_, rowIndex) => (
+            <div className="flex space-x-3 space-y-3" key={rowIndex}>
+              {Array.from({ length: 7 }).map((_, colIndex) =>
+                renderBall(rowIndex, rowIndex * 7 + colIndex + 1, true)
               )}
             </div>
           ))}
         </div>
       </div>
-      <div className="w-[65%] h-full bg-blue-300 border-8 rounded-md border-purple-500 flex-col-2 items-center justify-center">
-        <div className="w-[100%] h-[10%] bg-gray-400 flex items-center justify-center text-xl font-bold">
-          Saved Selections
+      <div className="flex-grow h-full bg-blue-300 border-8 rounded-md border-purple-500 flex-col-2 items-center justify-center">
+        <div className="h-16 bg-gray-400 flex items-center justify-center text-xl font-bold">
+          balls Selections
         </div>
-        <div className="w-full h-[90%] items-center justify-center text-2xl font-bold ">
-          {saved.map((selection, index) => (
+        <div className="font-bold">
+          {balls.map((selection, rowIndex) => (
             <div
-              key={index}
-              className={`flex space-x-4 items-center justify-center rounded-md border-8 ${renderColor(
-                index,
-                "border",
-                false
-              )}`}
+              key={rowIndex}
+              className={`flex space-x-4 items-center justify-between rounded-md bg-amber-100 h-24 m-2 ${
+                selectedIndex === rowIndex && "bg-amber-200"
+              }`}
+              onClick={() => setSelectedIndex(rowIndex)}
             >
-              <div className="h-full w-[80%] space-x-4 flex items-center justify-center text-2xl font-bold">
-                {selection.map((number) => renderBall(number, true))}
+              <div className="h-full space-x-4 flex items-center font-bold pl-8">
+                {selection.map((number) => renderBall(rowIndex, number, false))}
               </div>
               <button
-                className="h-full w-[20%]"
-                onClick={() => setSaved(saved.filter((_, i) => i !== index))}
+                className="cursor-pointer p-2 m-8 rounded-md bg-red-500 text-white"
+                onClick={() => {
+                  const newBalls = [...balls].filter((_, i) => i !== rowIndex);
+                  setSelectedIndex(0);
+                  setBalls(newBalls);
+                }}
               >
                 Delete
               </button>
             </div>
           ))}
-          {renderSelected()}
         </div>
       </div>
     </div>
