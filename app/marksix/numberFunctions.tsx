@@ -45,16 +45,18 @@ export function addOrRemoveBall(
 
   // If the current selection is full, find or create a new group
   const newIndex = selectBallIndex(updatedBalls);
-  if (newIndex === updatedBalls.length) {
-    // Create a new group if none are available
-    updatedBalls.push([ballNumber]);
-  } else {
-    // Add the ball to an existing group with space
-    updatedBalls[newIndex] = [...(updatedBalls[newIndex] || []), ballNumber];
-  }
-
   setSelectedIndex(newIndex);
-  setBalls(updatedBalls);
+  if (selectedIndex != newIndex) {
+    addOrRemoveBall(
+      updatedBalls,
+      setBalls,
+      newIndex,
+      setSelectedIndex,
+      ballNumber
+    );
+  } else {
+    setBalls(updatedBalls);
+  }
 }
 
 export function addBall(
