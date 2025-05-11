@@ -1,6 +1,7 @@
 import Announcements from "./announcements";
 import Nav from "./nav";
 import React from "react";
+import Account from "./account";
 
 export default function Layout({
   children,
