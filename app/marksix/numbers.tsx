@@ -1,13 +1,13 @@
 "use client";
 import { renderBall } from "./numberFunctions";
-import { NumberSelectionProps } from "./interfaces";
+import { NumberProps } from "./interfaces";
 
 export default function Numbers({
   balls,
   setBalls,
   selectedIndex,
   setSelectedIndex,
-}: NumberSelectionProps) {
+}: NumberProps) {
   return (
     <div className="h-full">
       <div className="h-12 bg-gray-400 flex items-center justify-center text-xl font-bold w-full">

@@ -8,18 +8,25 @@ import NumberSelection from "./numberSelection";
 export default function Home() {
   const [balls, setBalls] = useState<number[][]>([]);
   const [firstLoad, setFirstLoad] = useState<Boolean>(true);
+  const [cart, setCart] = useState<number[][]>([]);
 
-  function getLocalStorage(): number[][] {
+  function getBallsFromLocalStorage(): number[][] {
     return JSON.parse(localStorage.getItem("balls") || "[]");
+  }
+
+  function getCartFromLocalStorage(): number[][] {
+    return JSON.parse(localStorage.getItem("cart") || "[]");
   }
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   useEffect(() => {
     if (firstLoad) {
       setFirstLoad(false);
-      setBalls(getLocalStorage());
+      setBalls(getBallsFromLocalStorage());
+      setCart(getCartFromLocalStorage());
     } else {
       localStorage.setItem("balls", JSON.stringify(balls));
+      localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [firstLoad, balls]);
   return (
@@ -34,6 +41,8 @@ export default function Home() {
       </div>
       <div className="lg:w-1/3">
         <NumberSelection
+          cart={cart}
+          setCart={setCart}
           balls={balls}
           setBalls={setBalls}
           selectedIndex={selectedIndex}
@@ -41,7 +50,7 @@ export default function Home() {
         />
       </div>
       <div className="lg:w-1/3">
-        <Account />
+        <Account cart={cart} setCart={setCart} />
       </div>
     </div>
   );
