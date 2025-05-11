@@ -16,8 +16,8 @@ export default () => {
     }
   }
   return (
-    <div className="h-full w-80 bg-green-500">
-      <div className="h-1/6 w-full bg-gray-400 flex items-center justify-center text-xs font-bold">
+    <div className="h-full w-80">
+      <div className="h-10 w-full bg-gray-400 flex items-center justify-center text-xs font-bold">
         {tabs.map((element, index) => (
           <button
             key={index}
@@ -32,7 +32,7 @@ export default () => {
           </button>
         ))}
       </div>
-      <div className="h-5/6 w-full bg-gray-300 flex items-center justify-center text-2xl font-bold">
+      <div className="h-64 w-full bg-gray-300 flex items-center justify-center text-2xl font-bold">
         {tab}
       </div>
     </div>
