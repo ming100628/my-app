@@ -1,6 +1,11 @@
+export interface BallSelection {
+  id: string;
+  numbers: number[];
+}
+
 export interface NumberSelectionProps {
-  balls: number[][];
-  setBalls: (balls: number[][]) => void;
+  balls: BallSelection[];
+  setBalls: (balls: BallSelection[]) => void;
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
 }

@@ -9,44 +9,54 @@ export function generateQuickPick(): number[] {
       quickPick.push(random);
     }
   }
-  return quickPick;
+  return quickPick.sort((a, b) => a - b);
 }
 
-export function selectBallIndex(balls: number[][]): number {
-  const index = balls.findIndex((group) => group.length < 6);
+export function selectBallIndex(
+  balls: { id: string; numbers: number[] }[]
+): number {
+  const index = balls.findIndex((group) => group.numbers.length < 6);
   return index === -1 ? balls.length : index;
 }
 
 export function addOrRemoveBall(
-  balls: number[][],
-  setBalls: (balls: number[][]) => void,
+  balls: { id: string; numbers: number[] }[],
+  setBalls: (balls: { id: string; numbers: number[] }[]) => void,
   selectedIndex: number,
   setSelectedIndex: (index: number) => void,
   ballNumber: number
 ) {
   const updatedBalls = [...balls];
-  const currentSelection = updatedBalls[selectedIndex] || [];
+  const currentSelection = updatedBalls[selectedIndex]?.numbers || [];
 
   // If the ball already exists in the current selection, remove it
   if (currentSelection.includes(ballNumber)) {
-    updatedBalls[selectedIndex] = currentSelection.filter(
-      (number) => number !== ballNumber
-    );
-    setBalls(updatedBalls.filter((group) => group.length > 0)); // Remove empty groups
+    updatedBalls[selectedIndex] = {
+      ...updatedBalls[selectedIndex],
+      numbers: currentSelection.filter((number) => number !== ballNumber),
+    };
+    setBalls(updatedBalls.filter((group) => group.numbers.length > 0)); // Remove empty groups
     return;
   }
 
   // If the current selection has less than 6 numbers, add the ball
   if (currentSelection.length < 6) {
-    updatedBalls[selectedIndex] = [...currentSelection, ballNumber];
+    updatedBalls[selectedIndex] = {
+      ...updatedBalls[selectedIndex],
+      numbers: [...currentSelection, ballNumber].sort((a, b) => a - b),
+    };
     setBalls(updatedBalls);
     return;
   }
 
   // If the current selection is full, find or create a new group
   const newIndex = selectBallIndex(updatedBalls);
+  // If a new group is needed, create it with a unique id
+  if (newIndex === updatedBalls.length) {
+    updatedBalls.push({ id: crypto.randomUUID(), numbers: [] });
+  }
   setSelectedIndex(newIndex);
-  if (selectedIndex != newIndex) {
+  if (selectedIndex !== newIndex) {
     addOrRemoveBall(
       updatedBalls,
       setBalls,
@@ -60,14 +70,13 @@ export function addOrRemoveBall(
 }
 
 export function addBall(
-  balls: number[][],
-  setBalls: (balls: number[][]) => void,
+  balls: { id: string; numbers: number[] }[],
+  setBalls: (balls: { id: string; numbers: number[] }[]) => void,
   rowIndex: number,
   ballNumber: number
 ) {
   const updatedBalls = [...balls];
-  updatedBalls[rowIndex] = updatedBalls[rowIndex] || [];
-  const currentSelection = updatedBalls[rowIndex];
+  const currentSelection = updatedBalls[rowIndex]?.numbers || [];
 
   // Prevent adding more than 6 numbers to a row
   if (currentSelection.length >= 6) {
@@ -75,23 +84,44 @@ export function addBall(
   }
 
   if (!currentSelection.includes(ballNumber)) {
-    currentSelection.push(ballNumber);
-    updatedBalls[rowIndex] = currentSelection;
+    updatedBalls[rowIndex] = {
+      ...updatedBalls[rowIndex],
+      numbers: [...currentSelection, ballNumber].sort((a, b) => a - b),
+    };
     setBalls(updatedBalls);
   }
 }
 
 export function removeBall(
-  balls: number[][],
-  setBalls: (balls: number[][]) => void,
-  rowIndex: number,
+  balls: { id: string; numbers: number[] }[],
+  setBalls: (balls: { id: string; numbers: number[] }[]) => void,
+  id: string,
   ballNumber: number
 ) {
-  const updatedBalls = [...balls];
-  updatedBalls[rowIndex] = updatedBalls[rowIndex].filter(
-    (number) => number !== ballNumber
+  const updatedBalls = balls.map((group) =>
+    group.id === id
+      ? {
+          ...group,
+          numbers: group.numbers.filter((number) => number !== ballNumber),
+        }
+      : group
   );
-  setBalls(updatedBalls.filter((group) => group.length > 0));
+  setBalls(updatedBalls.filter((group) => group.numbers.length > 0));
+}
+
+export function purchase(
+  balls: { id: string; numbers: number[] }[],
+  balance: number
+) {
+  var cnt = 0;
+  balls.forEach(function (sel) {
+    if (sel.numbers.length === 6) cnt++;
+  });
+  if (balance < cnt * 10) {
+    alert("You don't have enough money.");
+  } else {
+    
+  }
 }
 
 export function renderColor(index: number, type: string): string {
@@ -106,15 +136,15 @@ export function renderColor(index: number, type: string): string {
 }
 
 export function renderBall(
-  balls: number[][],
-  setBalls: (balls: number[][]) => void,
+  balls: { id: string; numbers: number[] }[],
+  setBalls: (balls: { id: string; numbers: number[] }[]) => void,
   selectedIndex: number,
   setSelectedIndex: (index: number) => void,
-  rowIndex: number,
+  id: string,
   ballNumber: number,
   left: boolean
 ) {
-  const currentBalls = balls[selectedIndex];
+  const currentBalls = balls[selectedIndex]?.numbers;
   const selected = currentBalls?.includes(ballNumber);
 
   const text = ((left && selected) || !left) && renderColor(ballNumber, "text");
@@ -132,25 +162,21 @@ export function renderBall(
         ballNumber
       );
     } else {
-      removeBall(balls, setBalls, rowIndex, ballNumber);
+      removeBall(balls, setBalls, id, ballNumber);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 1, rotate: left ? 0 : 360, scale: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4 }}
-      className="items-center font-bold"
-      key={`${rowIndex}-${ballNumber}`}
+    <motion.button
+      layout
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5 }}
+      transition={{ duration: 0.5 }}
+      onClick={handleClick}
+      className={`cursor-pointer rounded-full border-2 ${text} ${background} ${border} w-10 h-10 flex items-center justify-center font-bold text-xl`}
     >
-      <button
-        className={`cursor-pointer rounded-full border-2 ${text} ${background} ${border} w-10 h-10 flex items-center justify-center font-bold text-xl transition duration-500 ease-in-out`}
-        onClick={handleClick}
-      >
-        {ballNumber}
-      </button>
-    </motion.div>
+      {ballNumber}
+    </motion.button>
   );
 }
