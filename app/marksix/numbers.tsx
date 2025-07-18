@@ -25,7 +25,7 @@ export default function Numbers(props: NumberSelectionProps) {
       <div className="h-12 bg-gray-400 flex items-center justify-center text-xl font-bold w-full">
         Numbers
       </div>
-      <div className="lg:h-[calc(100%-3rem)] flex items-center justify-center">
+      <div className="flex justify-center py-2">
         <div className="grid grid-cols-7 gap-2">
           <AnimatePresence mode="popLayout">
             {Array.from({ length: 49 }, (_, i) => renderGridBall(i + 1))}

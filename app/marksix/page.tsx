@@ -10,6 +10,7 @@ export default function Home() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [firstLoad, setFirstLoad] = useState(true);
   const [balance, setBalance] = useState(0);
+  const [purchasedBalls, setPurchasedBalls] = useState<BallSelection[]>([]);
 
   const getLocalStorage = () =>
     JSON.parse(localStorage.getItem("balls") || "[]");
@@ -22,16 +23,20 @@ export default function Home() {
       return Number(balance);
     }
   };
+  const getPurchasedBalls = () =>
+    JSON.parse(localStorage.getItem("pballs") || "[]");
 
   useEffect(() => {
     if (firstLoad) {
       setFirstLoad(false);
       setBalls(getLocalStorage());
       setBalance(getAccountBalance());
+      setPurchasedBalls(getPurchasedBalls());
     } else {
       localStorage.setItem("balls", JSON.stringify(balls));
+      localStorage.setItem("pballs", JSON.stringify(purchasedBalls));
     }
-  }, [firstLoad, balls]);
+  }, [firstLoad, balls, purchasedBalls]);
 
   const sharedProps = { balls, setBalls, selectedIndex, setSelectedIndex };
   const sharedPropsWithBalance = {
@@ -40,6 +45,9 @@ export default function Home() {
     selectedIndex,
     setSelectedIndex,
     balance,
+    purchasedBalls,
+    setPurchasedBalls,
+    setBalance,
   };
   return (
     <div className="flex flex-col lg:flex-row">

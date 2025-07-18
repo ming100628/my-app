@@ -109,21 +109,6 @@ export function removeBall(
   setBalls(updatedBalls.filter((group) => group.numbers.length > 0));
 }
 
-export function purchase(
-  balls: { id: string; numbers: number[] }[],
-  balance: number
-) {
-  var cnt = 0;
-  balls.forEach(function (sel) {
-    if (sel.numbers.length === 6) cnt++;
-  });
-  if (balance < cnt * 10) {
-    alert("You don't have enough money.");
-  } else {
-    
-  }
-}
-
 export function renderColor(index: number, type: string): string {
   if (type === "text") {
     return "text-white";
