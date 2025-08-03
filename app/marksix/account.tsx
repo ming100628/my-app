@@ -99,7 +99,7 @@ export default ({
         <div className="h-full space-x-2 flex items-center font-bold pl-8">
           {selection.ddate && (
             <span className="text-sm text-gray-600">
-              {selection.ddate.toLocaleDateString()}
+              {new Date(selection.ddate).toLocaleDateString()}
             </span>
           )}
           <AnimatePresence mode="popLayout">

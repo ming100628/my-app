@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { BGCOLORS, BORDERCOLORS } from "../utils/constants";
+import { PastDraw, BallSelection } from "./interfaces";
 
 export function generateQuickPick(): number[] {
   const quickPick: number[] = [];
@@ -118,6 +119,19 @@ export function renderColor(index: number, type: string): string {
     return BGCOLORS[index % 8];
   }
   return "";
+}
+
+export function checkSelection(
+  balls: BallSelection,
+  balls2: BallSelection
+): number {
+  var duplicates = 0;
+  for (let i = 0; i < balls2.numbers.length; i++) {
+    for (let j = 0; j < balls.numbers.length; j++) {
+      if (balls2.numbers[i] == balls.numbers[j]) duplicates++;
+    }
+  }
+  return duplicates;
 }
 
 export function renderBall(
